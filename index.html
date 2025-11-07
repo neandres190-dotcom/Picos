@@ -1653,8 +1653,8 @@ h1 {
     </style>
   </head>
   <body class="container">
-  <audio id="miAudio" loop playsinline webkit-playsinline preload="auto">
-  <source src="House Of Cards (full length edition).mp3" type="audio/mpeg">
+<audio id="miAudio" loop playsinline webkit-playsinline preload="metadata">
+  <source src="https://neandres190-dotcom.github.io/Picos/House%20Of%20Cards%20%28full%20length%20edition%29.mp3" type="audio/mpeg">
 </audio>
 
 
@@ -1669,122 +1669,145 @@ h1 {
   const pauseBtn = document.getElementById('pauseBtn');
   const restartBtn = document.getElementById('restartBtn');
   
-  // Verificar que el audio se cargó
-  audio.addEventListener('loadeddata', () => {
-    console.log('Audio cargado correctamente');
-  });
+  // Configuración para móviles
+  audio.load();
   
-  audio.addEventListener('error', (e) => {
-    console.error('Error al cargar audio:', e);
-    alert('No se pudo cargar el audio. Verifica que el archivo exista.');
-  });
+  // Desbloquear audio en móviles
+  let audioUnlocked = false;
   
-  // Estado inicial
-  let hasInteracted = false;
-  
-  // Función para intentar reproducir
-  function tryPlay() {
-    const playPromise = audio.play();
+  function unlockAudio() {
+    if (audioUnlocked) return;
     
-    if (playPromise !== undefined) {
-      playPromise.then(() => {
-        console.log('Audio reproduciendo');
-        playBtn.style.opacity = '0.5';
-        pauseBtn.style.opacity = '1';
-      }).catch(error => {
-        console.log('Necesita interacción del usuario:', error);
-        playBtn.style.opacity = '1';
-        pauseBtn.style.opacity = '0.5';
+    const promise = audio.play();
+    if (promise !== undefined) {
+      promise.then(() => {
+        audio.pause();
+        audio.currentTime = 0;
+        audioUnlocked = true;
+        console.log('✅ Audio desbloqueado para móvil');
+      }).catch(e => {
+        console.log('⏳ Esperando interacción...', e.message);
       });
     }
   }
   
-  // Botón Play
-  playBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Click en Play');
-    audio.play().then(() => {
-      playBtn.style.opacity = '0.5';
-      pauseBtn.style.opacity = '1';
-    }).catch(err => {
-      console.error('Error al reproducir:', err);
-      alert('Error: ' + err.message);
-    });
+  // Desbloquear con cualquier interacción
+  ['touchstart', 'touchend', 'click'].forEach(event => {
+    document.addEventListener(event, unlockAudio, { once: true, passive: true });
   });
   
-  playBtn.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Touch en Play');
-    audio.play().then(() => {
-      playBtn.style.opacity = '0.5';
-      pauseBtn.style.opacity = '1';
-    }).catch(err => {
-      console.error('Error al reproducir:', err);
-    });
-  });
+  // Función principal de reproducción
+  function playAudio() {
+    audio.load(); // Recargar en caso de que sea necesario
+    
+    const playPromise = audio.play();
+    
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          console.log('▶️ Audio reproduciendo');
+          updateButtons('playing');
+        })
+        .catch(error => {
+          console.error('❌ Error al reproducir:', error.name, error.message);
+          
+          // Segundo intento después de un delay
+          setTimeout(() => {
+            audio.play()
+              .then(() => {
+                console.log('▶️ Reproduciendo en segundo intento');
+                updateButtons('playing');
+              })
+              .catch(e => console.error('❌ Segundo intento falló:', e.message));
+          }, 300);
+        });
+    }
+  }
   
-  // Botón Pausa
-  pauseBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Click en Pausa');
+  function pauseAudio() {
     audio.pause();
-    playBtn.style.opacity = '1';
-    pauseBtn.style.opacity = '0.5';
-  });
+    console.log('⏸️ Audio pausado');
+    updateButtons('paused');
+  }
   
-  pauseBtn.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Touch en Pausa');
-    audio.pause();
-    playBtn.style.opacity = '1';
-    pauseBtn.style.opacity = '0.5';
-  });
-  
-  // Botón Reiniciar
-  restartBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Click en Reiniciar');
+  function restartAudio() {
     audio.currentTime = 0;
-    audio.play().then(() => {
-      playBtn.style.opacity = '0.5';
-      pauseBtn.style.opacity = '1';
-    });
-  });
+    playAudio();
+    console.log('🔄 Audio reiniciado');
+  }
   
-  restartBtn.addEventListener('touchend', (e) => {
+  function updateButtons(state) {
+    if (state === 'playing') {
+      playBtn.style.opacity = '0.4';
+      pauseBtn.style.opacity = '1';
+      restartBtn.style.opacity = '1';
+      playBtn.style.background = 'rgba(100, 100, 100, 0.4)';
+      pauseBtn.style.background = 'rgba(255, 215, 0, 0.9)';
+      restartBtn.style.background = 'rgba(255, 215, 0, 0.9)';
+    } else {
+      playBtn.style.opacity = '1';
+      pauseBtn.style.opacity = '0.4';
+      restartBtn.style.opacity = '1';
+      playBtn.style.background = 'rgba(255, 215, 0, 0.9)';
+      pauseBtn.style.background = 'rgba(100, 100, 100, 0.4)';
+      restartBtn.style.background = 'rgba(255, 215, 0, 0.9)';
+    }
+  }
+  
+  // Event listeners para MÓVIL (más confiable con touchend)
+  playBtn.addEventListener('touchend', function(e) {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Touch en Reiniciar');
-    audio.currentTime = 0;
-    audio.play().then(() => {
-      playBtn.style.opacity = '0.5';
-      pauseBtn.style.opacity = '1';
-    });
+    playAudio();
+  }, { passive: false });
+  
+  pauseBtn.addEventListener('touchend', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    pauseAudio();
+  }, { passive: false });
+  
+  restartBtn.addEventListener('touchend', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    restartAudio();
+  }, { passive: false });
+  
+  // Event listeners para PC
+  playBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    playAudio();
   });
   
-  // Efectos hover para escritorio
+  pauseBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    pauseAudio();
+  });
+  
+  restartBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    restartAudio();
+  });
+  
+  // Efectos visuales
   [playBtn, pauseBtn, restartBtn].forEach(btn => {
-    btn.addEventListener('mouseenter', () => {
-      btn.style.transform = 'scale(1.1)';
-    });
-    btn.addEventListener('mouseleave', () => {
-      btn.style.transform = 'scale(1)';
+    btn.addEventListener('mouseenter', () => btn.style.transform = 'scale(1.15)');
+    btn.addEventListener('mouseleave', () => btn.style.transform = 'scale(1)');
+  });
+  
+  // Monitoreo de eventos de audio
+  audio.addEventListener('loadeddata', () => console.log('✅ Audio cargado'));
+  audio.addEventListener('canplaythrough', () => console.log('✅ Listo para reproducir'));
+  audio.addEventListener('playing', () => console.log('▶️ Reproduciendo...'));
+  audio.addEventListener('error', function(e) {
+    console.error('❌ ERROR DE AUDIO:', {
+      code: audio.error?.code,
+      message: audio.error?.message
     });
   });
   
-  // Listener para eventos de reproducción
-  audio.addEventListener('play', () => {
-    console.log('Audio iniciado');
-  });
-  
-  audio.addEventListener('pause', () => {
-    console.log('Audio pausado');
-  });
+  // Estado inicial
+  updateButtons('paused');
 </script>
 
     <h1 class="titulo">
