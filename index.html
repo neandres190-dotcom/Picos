@@ -1653,8 +1653,8 @@ h1 {
     </style>
   </head>
   <body class="container">
-  <audio id="miAudio" loop playsinline>
-  <source src="TU_CANCION.mp3" type="audio/mpeg">
+  <audio id="miAudio" loop playsinline webkit-playsinline preload="auto">
+  <source src="House Of Cards (full length edition).mp3" type="audio/mpeg">
 </audio>
 
 
@@ -1669,67 +1669,76 @@ h1 {
   const pauseBtn = document.getElementById('pauseBtn');
   const restartBtn = document.getElementById('restartBtn');
   
-  // Configuración específica para Android
-  audio.setAttribute('playsinline', '');
-  audio.setAttribute('webkit-playsinline', '');
+  // Verificar que el audio se cargó
+  audio.addEventListener('loadeddata', () => {
+    console.log('Audio cargado correctamente');
+  });
+  
+  audio.addEventListener('error', (e) => {
+    console.error('Error al cargar audio:', e);
+    alert('No se pudo cargar el audio. Verifica que el archivo exista.');
+  });
   
   // Estado inicial
   let hasInteracted = false;
   
   // Función para intentar reproducir
   function tryPlay() {
-    audio.play().then(() => {
-      console.log('Reproduciendo audio');
-      playBtn.style.opacity = '0.5';
-      pauseBtn.style.opacity = '1';
-    }).catch(e => {
-      console.log('Esperando interacción del usuario');
-      playBtn.style.opacity = '1';
-      pauseBtn.style.opacity = '0.5';
-    });
-  }
-  
-  // Intenta reproducir cuando cargue la página
-  window.addEventListener('load', tryPlay);
-  
-  // Maneja la primera interacción en móviles
-  function firstInteraction() {
-    if (!hasInteracted) {
-      hasInteracted = true;
-      tryPlay();
+    const playPromise = audio.play();
+    
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        console.log('Audio reproduciendo');
+        playBtn.style.opacity = '0.5';
+        pauseBtn.style.opacity = '1';
+      }).catch(error => {
+        console.log('Necesita interacción del usuario:', error);
+        playBtn.style.opacity = '1';
+        pauseBtn.style.opacity = '0.5';
+      });
     }
   }
   
-  document.addEventListener('touchstart', firstInteraction, { once: true });
-  document.addEventListener('click', firstInteraction, { once: true });
-  
   // Botón Play
   playBtn.addEventListener('click', (e) => {
+    e.preventDefault();
     e.stopPropagation();
-    audio.play();
-    playBtn.style.opacity = '0.5';
-    pauseBtn.style.opacity = '1';
+    console.log('Click en Play');
+    audio.play().then(() => {
+      playBtn.style.opacity = '0.5';
+      pauseBtn.style.opacity = '1';
+    }).catch(err => {
+      console.error('Error al reproducir:', err);
+      alert('Error: ' + err.message);
+    });
   });
   
-  playBtn.addEventListener('touchstart', (e) => {
-    e.stopPropagation();
+  playBtn.addEventListener('touchend', (e) => {
     e.preventDefault();
-    audio.play();
-    playBtn.style.opacity = '0.5';
-    pauseBtn.style.opacity = '1';
+    e.stopPropagation();
+    console.log('Touch en Play');
+    audio.play().then(() => {
+      playBtn.style.opacity = '0.5';
+      pauseBtn.style.opacity = '1';
+    }).catch(err => {
+      console.error('Error al reproducir:', err);
+    });
   });
   
   // Botón Pausa
   pauseBtn.addEventListener('click', (e) => {
+    e.preventDefault();
     e.stopPropagation();
+    console.log('Click en Pausa');
     audio.pause();
     playBtn.style.opacity = '1';
     pauseBtn.style.opacity = '0.5';
   });
   
-  pauseBtn.addEventListener('touchstart', (e) => {
-    e.stopPropagation();
+  pauseBtn.addEventListener('touchend', (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    console.log('Touch en Pausa');
     audio.pause();
     playBtn.style.opacity = '1';
     pauseBtn.style.opacity = '0.5';
@@ -1737,20 +1746,25 @@ h1 {
   
   // Botón Reiniciar
   restartBtn.addEventListener('click', (e) => {
+    e.preventDefault();
     e.stopPropagation();
+    console.log('Click en Reiniciar');
     audio.currentTime = 0;
-    audio.play();
-    playBtn.style.opacity = '0.5';
-    pauseBtn.style.opacity = '1';
+    audio.play().then(() => {
+      playBtn.style.opacity = '0.5';
+      pauseBtn.style.opacity = '1';
+    });
   });
   
-  restartBtn.addEventListener('touchstart', (e) => {
-    e.stopPropagation();
+  restartBtn.addEventListener('touchend', (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    console.log('Touch en Reiniciar');
     audio.currentTime = 0;
-    audio.play();
-    playBtn.style.opacity = '0.5';
-    pauseBtn.style.opacity = '1';
+    audio.play().then(() => {
+      playBtn.style.opacity = '0.5';
+      pauseBtn.style.opacity = '1';
+    });
   });
   
   // Efectos hover para escritorio
@@ -1761,6 +1775,15 @@ h1 {
     btn.addEventListener('mouseleave', () => {
       btn.style.transform = 'scale(1)';
     });
+  });
+  
+  // Listener para eventos de reproducción
+  audio.addEventListener('play', () => {
+    console.log('Audio iniciado');
+  });
+  
+  audio.addEventListener('pause', () => {
+    console.log('Audio pausado');
   });
 </script>
 
