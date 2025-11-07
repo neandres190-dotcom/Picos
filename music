@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lores amarillas</title>
+    <title>Picos - te amo</title>
     <style>
       *,
 *::after,
@@ -1649,8 +1649,6 @@ h1 {
 </audio>
 
 
-  <button id="musicBtn" style="position: fixed; top: 10px; right: 10px; z-index: 1000; padding: 10px 20px; background: yellow; border: none; border-radius: 20px; cursor: pointer;">🔊 Pausar</button>
-
 <script>
   const audio = document.getElementById('miAudio');
   
@@ -1671,7 +1669,7 @@ h1 {
 
 
     <h1 class="titulo">
-      Mira lo que me encontré Melani 😊<br> ... <br>
+      Mira lo que me encontré Melani 😊<br>
       Muack. ❤️ 💐 JAJAJAJAJA<br>
       (Presiona la pantalla)</h1>
     
